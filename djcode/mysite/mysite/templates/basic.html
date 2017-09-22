@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>SASQL System</title>
+<!-- 	<link rel="stylesheet" type="text/css" href="./jquery-easyui-1.5.2/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="./jquery-easyui-1.5.2/themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="./jquery-easyui-1.5.2/demo/demo.css">
+	<script type="text/javascript" src="../templates/jquery-easyui-1.5.2/jquery.min.js"></script>
+	<script type="text/javascript" src="./jquery-easyui-1.5.2/jquery.easyui.min.js"></script>
+</head> -->
+	<link rel="stylesheet" type="text/css" href="../static/jquery-easyui-1.5.2/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="{% static 'jquery-easyui-1.5.2/themes/icon.css'%}">
+	<link rel="stylesheet" type="text/css" href="{% static 'jquery-easyui-1.5.2/demo/demo.css'%}">
+	<script type="text/javascript" src="{% static 'jquery-easyui-1.5.2/jquery.min.js'%}"></script>
+	<script type="text/javascript" src="{% static 'jquery-easyui-1.5.2/jquery.easyui.min.js'%}"></script>
+</head>
+<body>
+<!-- 	<h2>Basic ComboBox</h2>
+	<p>Type in ComboBox to try auto complete.</p> -->
+<!-- 	<div style="margin:20px 0;">
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="setvalue()">SetValue</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="alert($('#state').combobox('getValue'))">GetValue</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#state').combobox('disable')">Disable</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="$('#state').combobox('enable')">Enable</a>
+		<a href="javascript:void(0)" class="easyui-linkbutton" onclick="reload()">Get Text</a>
+
+	</div> -->
+<!-- 	<input id="search" class="easyui-textbox" data-options="iconCls:'icon-search'" style="width:300px"> -->
+	<!-- <div style="margin:20px 0"></div> -->
+<!-- 	<div class="easyui-panel" style="width:100%;max-width:400px;padding:30px 60px;">
+		<div style="margin-bottom:20px">
+			<select id="state" class="easyui-combobox" name="state" label="State:" labelPosition="top" style="width:100%;" >
+				{% for item in item_list %}
+					<option value={{item.shortcut}}>{{item.fullname}}</option>
+				{% endfor %}
+			</select>
+		</div>
+	</div> -->
+
+	<h2>SASQL System</h2>
+	<p style="width:500px">Select a clause category and input the partial query, click search button or press enter key in input box to do auto-completion.</p>
+	<div style="margin:20px 0;"></div>
+	<a>user id: </a><input id="user" class="easyui-textbox" style="width:250px"></input>
+	<div style="margin:20px 0;"></div>
+	<input id="search" style="width:500px"></input>
+	<div id="mm"">
+		<div data-options="name:'select'">select clause</div>
+		<div data-options="name:'from'">from clause</div>
+		<div data-options="name:'where'">where clause</div>
+	</div>
+<!-- 	<div id="nn"">
+		<div data-options="nname:'134.171.161.230'">s134.171.161.230</div>
+		<div data-options="nname:'207.46.98.61'">207.46.98.61</div>
+		<div data-options="nname:'128.220.233.62'">128.220.233.62</div>
+	</div> -->
+
+	<div style="margin:20px 0;"></div>
+	
+	<table id="datagrid" class="easyui-datagrid" title="Suggestions" style="width:500px;height:250px"
+			data-options="singleSelect:true,collapsible:true,method:'get'">
+		<thead>
+			<tr>
+				<th data-options="field:'suggestion',width:350">Suggestion</th>
+				<th data-options="field:'response_time',width:150">Response Time</th>
+				<!-- <th data-options="field:'productid',width:100">Response Time</th> -->
+			</tr>
+		</thead>
+	</table>
+	<p style="width:500px">Current SQL is: <b id='sql'></b> </p> 
+	<script type="text/javascript">
+		$('#search').searchbox({
+		    searcher:function(value,name){
+		    	var user_id = $('#user').textbox('getText')
+		        // alert(value + "," + name+","+user_id)
+		        $('#datagrid').datagrid('load',{input:value,clause:name})
+		    },
+		    menu:'#mm',
+		    prompt:'Please Input Value'
+		});
+		$('#datagrid').datagrid({
+	    	url:'../datagrid/'
+	    });
+	    $('#datagrid').datagrid({
+			onDblClickRow: function(index,row){
+				// $(this).datagrid('beginEdit', index);
+				// var ed = $(this).datagrid('getEditor', {index:index,field:field});
+				// $(ed.target).focus();
+				// var r = $('#datagrid').datagrid('getRowIndex',{row:index})
+				// alert(index+','+row['suggestion']);
+				var t = $('#search').searchbox('getValue')
+				// alert('t '+t)
+				var m = $('#search').searchbox('getName'); 
+				// alert('m found')
+				// var mname = m.menu.name
+				// alert('m '+m)
+				if(m!='select'){
+					t = t+' '+m+' '+row['suggestion']
+				}
+				else if(t!='select'){
+					t = t+', '+row['suggestion']
+				}
+				else{
+					t = t+' '+row['suggestion']
+				}
+				$('#search').searchbox('setValue',t); 
+				document.getElementById('sql').innerHTML = t;
+			}
+		});
+		function doSearch(value,name){
+				// alert('You input: ' + value+'('+name+')');
+				var rows = 0;
+				// $.get('../datagrid/?input='+$('#search').searchbox('getText'),function(data){
+				// 	// alert("data loaded: "+data);
+				// 	rows = data;
+				// 	alert("data loaded: "+JSON.parse(rows)["rows"]);
+				// });
+				// alert("rows: "+$('#datagrid').datagrid('getRows'));
+				// var rows = $('#search').searchbox('getText')
+				$('#datagrid').datagrid('load')
+		}
+
+	</script>
+<!-- 	<script>
+		function doSearch(value,name){
+			alert('You input: ' + value+'('+name+')');
+		}
+	</script>
+	<script type="text/javascript">
+		function setvalue(){
+			$.messager.prompt('SetValue','Please input the value(CO,NV,UT,etc):',function(v){
+				if (v){
+					$('#state').combobox('setValue',v);
+				}
+			});
+		}
+		function reload(){
+			// $.messager.prompt("text");
+			var input_text = $('#state').combobox('getText');
+			var url = '../input/?input='+input_text;
+			$('#state').combobox('reload',url);
+		}
+	</script> -->
+</body>
+</html>
